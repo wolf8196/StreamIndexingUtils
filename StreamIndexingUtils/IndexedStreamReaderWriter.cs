@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StreamIndexingUtils.Extensions;
 using StreamIndexingUtils.Models;
+using StreamIndexingUtils.Utils;
 
 namespace StreamIndexingUtils
 {
@@ -48,6 +49,9 @@ namespace StreamIndexingUtils
 
         public async Task ReadAsync(Stream destination, string id)
         {
+            destination.ThrowIfNull(nameof(destination));
+            id.ThrowIfNull(nameof(id));
+
             if (CurrentContentIndex == null)
             {
                 throw new ArgumentNullException(nameof(CurrentContentIndex), "The current content index is not set");
@@ -153,6 +157,9 @@ Id: {id}");
 
         public async Task WriteAsync(Stream source, string id, bool overwrite, long offset)
         {
+            source.ThrowIfNull(nameof(source));
+            id.ThrowIfNull(nameof(id));
+
             if (CurrentContentIndex == null)
             {
                 throw new ArgumentNullException(nameof(CurrentContentIndex), "The current content index is not set");
@@ -187,6 +194,8 @@ Id: {id}");
 
         public async Task RemoveAsync(string id)
         {
+            id.ThrowIfNull(nameof(id));
+
             if (!CurrentContentIndex.ContainsKey(id))
             {
                 throw new ArgumentException($@"Id does not exist in the index.
