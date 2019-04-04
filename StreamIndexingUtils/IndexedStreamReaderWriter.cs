@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using StreamIndexingUtils.Extensions;
 using StreamIndexingUtils.Models;
 
 namespace StreamIndexingUtils
@@ -60,16 +61,7 @@ Id: {id}");
 
             BaseStream.Seek(itemPointer.Start, SeekOrigin.Begin);
 
-            byte[] buffer = new byte[DefaultCopyBufferSize];
-            long bytes = itemPointer.Length;
-            int read;
-
-            while (bytes > 0 &&
-                   (read = await BaseStream.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, bytes))) > 0)
-            {
-                await destination.WriteAsync(buffer, 0, read);
-                bytes -= read;
-            }
+            await BaseStream.CopyToAsync(destination, itemPointer.Length);
         }
 
         public async Task<ContentIndex> ReadContentIndexAsync()
