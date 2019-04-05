@@ -142,20 +142,10 @@ Id: {id}");
 
         public Task WriteAsync(Stream source, string id)
         {
-            return WriteAsync(source, id, false, 0);
+            return WriteAsync(source, id, 0);
         }
-
-        public Task WriteAsync(Stream source, string id, bool overwrite)
-        {
-            return WriteAsync(source, id, overwrite, 0);
-        }
-
-        public Task WriteAsync(Stream source, string id, long offset)
-        {
-            return WriteAsync(source, id, false, offset);
-        }
-
-        public async Task WriteAsync(Stream source, string id, bool overwrite, long offset)
+        
+        public async Task WriteAsync(Stream source, string id, long offset)
         {
             source.ThrowIfNull(nameof(source));
             id.ThrowIfNull(nameof(id));
@@ -165,7 +155,7 @@ Id: {id}");
                 throw new ArgumentNullException(nameof(CurrentContentIndex), "The current content index is not set");
             }
 
-            if (!overwrite && CurrentContentIndex.ContainsKey(id))
+            if (CurrentContentIndex.ContainsKey(id))
             {
                 throw new ArgumentException($@"An element with the same id already exists in the content index.
 Id: {id}");
