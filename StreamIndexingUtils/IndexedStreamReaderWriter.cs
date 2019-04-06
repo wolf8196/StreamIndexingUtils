@@ -39,7 +39,7 @@ namespace StreamIndexingUtils
 
         public async Task FlushAsync()
         {
-            await BaseStream.FlushAsync();
+            await BaseStream.FlushAsync().ConfigureAwait(false);
         }
 
         public async Task LoadContentIndexAsync()
@@ -65,7 +65,7 @@ Id: {id}");
 
             BaseStream.Seek(itemPointer.Start, SeekOrigin.Begin);
 
-            await BaseStream.CopyToAsync(destination, itemPointer.Length);
+            await BaseStream.CopyToAsync(destination, itemPointer.Length).ConfigureAwait(false);
         }
 
         public async Task<ContentIndex> ReadContentIndexAsync()
@@ -214,11 +214,13 @@ Id: {id}");
 
             BaseStream.Seek(sourcePosition, SeekOrigin.Begin);
             while (bytes > 0 &&
-                   (read = await BaseStream.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, bytes))) > 0)
+                   (read = await BaseStream
+                        .ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, bytes))
+                        .ConfigureAwait(false)) > 0)
             {
                 sourcePosition = BaseStream.Position;
                 BaseStream.Seek(destinationPosition, SeekOrigin.Begin);
-                await BaseStream.WriteAsync(buffer, 0, read);
+                await BaseStream.WriteAsync(buffer, 0, read).ConfigureAwait(false);
                 destinationPosition = BaseStream.Position;
                 BaseStream.Seek(sourcePosition, SeekOrigin.Begin);
                 bytes -= read;

@@ -26,9 +26,11 @@ namespace StreamIndexingUtils.Extensions
             byte[] buffer = new byte[Math.Min(DefaultCopyBufferSize, length)];
             int read;
 
-            while (length > 0 && (read = await source.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, length))) > 0)
+            while (length > 0 && (read = await source
+                    .ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, length))
+                    .ConfigureAwait(false)) > 0)
             {
-                await destination.WriteAsync(buffer, 0, read);
+                await destination.WriteAsync(buffer, 0, read).ConfigureAwait(false);
                 length -= read;
             }
         }
