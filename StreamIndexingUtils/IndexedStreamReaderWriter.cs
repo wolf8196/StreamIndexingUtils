@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using StreamIndexingUtils.Extensions;
 using StreamIndexingUtils.Models;
 using StreamIndexingUtils.Utils;
@@ -42,11 +41,6 @@ namespace StreamIndexingUtils
             await BaseStream.FlushAsync().ConfigureAwait(false);
         }
 
-        public async Task LoadContentIndexAsync()
-        {
-            CurrentContentIndex = await ReadContentIndexAsync().ConfigureAwait(false);
-        }
-
         public async Task ReadAsync(Stream destination, string id)
         {
             destination.ThrowIfNull(nameof(destination));
@@ -68,83 +62,11 @@ Id: {id}");
             await BaseStream.CopyToAsync(destination, itemPointer.Length).ConfigureAwait(false);
         }
 
-        public async Task<ContentIndex> ReadContentIndexAsync()
-        {
-            var sizeOfPositionPointer = sizeof(long);
-            if (BaseStream.Length > sizeOfPositionPointer)
-            {
-                BaseStream.Seek(-sizeOfPositionPointer, SeekOrigin.End);
-            }
-            else
-            {
-                throw new FormatException("The base stream is not in correct format");
-            }
-
-            var positionPointerBytes = new byte[sizeOfPositionPointer];
-            BaseStream.Read(positionPointerBytes, 0, sizeOfPositionPointer);
-            var position = BitConverter.ToInt64(positionPointerBytes, 0);
-
-            BaseStream.Seek(position, SeekOrigin.Begin);
-
-            try
-            {
-                var buffer = new byte[BaseStream.Length - position - sizeOfPositionPointer];
-                await BaseStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-
-                using (var streamReader = new StreamReader(new MemoryStream(buffer)))
-                {
-                    var serializer = JsonSerializer.CreateDefault();
-                    return (ContentIndex)serializer.Deserialize(streamReader, typeof(ContentIndex));
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new FormatException("The base stream is not in correct format", ex);
-            }
-        }
-
-        public Task SaveContentIndexAsync()
-        {
-            return SaveContentIndexAsync(0);
-        }
-
-        public async Task SaveContentIndexAsync(long offset)
-        {
-            if (CurrentContentIndex == null)
-            {
-                throw new ArgumentNullException(nameof(CurrentContentIndex), "The current content index is not set");
-            }
-
-            using (var memoryStream = new MemoryStream())
-            using (var streamWriter = new StreamWriter(memoryStream))
-            {
-                var serializer = JsonSerializer.CreateDefault();
-                serializer.Serialize(streamWriter, CurrentContentIndex);
-                await streamWriter.FlushAsync().ConfigureAwait(false);
-
-                var lastItemPointer = CurrentContentIndex.GetLastItemContentPointer();
-
-                var indexStartPos = lastItemPointer == null
-                    ? offset : lastItemPointer.Start + lastItemPointer.Length;
-
-                var positionPointerBytes = BitConverter.GetBytes(indexStartPos);
-
-                BaseStream.Seek(indexStartPos, SeekOrigin.Begin);
-
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                await memoryStream.CopyToAsync(BaseStream).ConfigureAwait(false);
-
-                await BaseStream.WriteAsync(positionPointerBytes, 0, positionPointerBytes.Length).ConfigureAwait(false);
-
-                BaseStream.SetLength(BaseStream.Position);
-            }
-        }
-
         public Task WriteAsync(Stream source, string id)
         {
             return WriteAsync(source, id, 0);
         }
-        
+
         public async Task WriteAsync(Stream source, string id, long offset)
         {
             source.ThrowIfNull(nameof(source));
@@ -234,6 +156,31 @@ Id: {id}");
             }
 
             CurrentContentIndex.Remove(id);
+        }
+
+        public async Task LoadContentIndexAsync()
+        {
+            CurrentContentIndex = await ReadContentIndexAsync().ConfigureAwait(false);
+        }
+
+        public async Task<ContentIndex> ReadContentIndexAsync()
+        {
+            return await new IndexSerializer().DeserializeAsync(BaseStream).ConfigureAwait(false);
+        }
+
+        public Task SaveContentIndexAsync()
+        {
+            return SaveContentIndexAsync(0);
+        }
+
+        public async Task SaveContentIndexAsync(long offset)
+        {
+            if (CurrentContentIndex == null)
+            {
+                throw new ArgumentNullException(nameof(CurrentContentIndex), "The current content index is not set");
+            }
+
+            await new IndexSerializer().SerializeAsync(CurrentContentIndex, BaseStream, offset).ConfigureAwait(false);
         }
     }
 }
