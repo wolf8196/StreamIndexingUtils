@@ -9,12 +9,22 @@ namespace StreamIndexingUtils
         private long offset;
 
         public IndexedWriteStream(Stream stream, ContentIndex index, string id)
-            : this(stream, index, id, 0)
+            : this(stream, index, id, 0, false)
         {
         }
 
         public IndexedWriteStream(Stream stream, ContentIndex index, string id, int offset)
-            : base(stream, index, id)
+            : this(stream, index, id, false)
+        {
+        }
+
+        public IndexedWriteStream(Stream stream, ContentIndex index, string id, bool leaveOpen)
+            : this(stream, index, id, 0, leaveOpen)
+        {
+        }
+
+        public IndexedWriteStream(Stream stream, ContentIndex index, string id, int offset, bool leaveOpen)
+            : base(stream, index, id, leaveOpen)
         {
             this.offset = offset;
         }

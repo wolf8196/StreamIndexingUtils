@@ -6,6 +6,11 @@ namespace StreamIndexingUtils
 {
     public class IndexedReadOnlyStream : IndexedStream
     {
+        public IndexedReadOnlyStream(Stream stream, ContentIndex index, string id, bool leaveOpen)
+            : base(stream, index, id, leaveOpen)
+        {
+        }
+
         public IndexedReadOnlyStream(Stream stream, ContentIndex index, string id)
             : base(stream, index, id)
         {

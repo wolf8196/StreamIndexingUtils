@@ -7,8 +7,16 @@ namespace StreamIndexingUtils
 {
     public abstract class IndexedStream : Stream
     {
+        private bool leaveOpen;
+
         public IndexedStream(Stream stream, ContentIndex index, string id)
+            : this(stream, index, id, false)
         {
+        }
+
+        public IndexedStream(Stream stream, ContentIndex index, string id, bool leaveOpen)
+        {
+            this.leaveOpen = leaveOpen;
             BaseStream = stream.ThrowIfNull(nameof(stream));
 
             if (!BaseStream.CanSeek || !BaseStream.CanRead)
@@ -101,7 +109,7 @@ namespace StreamIndexingUtils
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && !leaveOpen)
             {
                 BaseStream.Dispose();
             }
