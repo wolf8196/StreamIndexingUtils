@@ -36,10 +36,17 @@ namespace StreamIndexingUtils
 
         public void Dispose()
         {
-            if (BaseStream != null && !leaveOpen)
+            Flush();
+
+            if (!leaveOpen)
             {
                 BaseStream.Dispose();
             }
+        }
+
+        public void Flush()
+        {
+            BaseStream.Flush();
         }
 
         public async Task FlushAsync()

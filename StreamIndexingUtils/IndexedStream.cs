@@ -51,7 +51,7 @@ namespace StreamIndexingUtils
             }
         }
 
-        protected Stream BaseStream { get; set; }
+        protected Stream BaseStream { get; }
 
         protected ContentPointer ContentPointer { get; set; }
 
@@ -109,7 +109,9 @@ namespace StreamIndexingUtils
 
         protected sealed override void Dispose(bool disposing)
         {
-            if (BaseStream != null && disposing && !leaveOpen)
+            Flush();
+
+            if (disposing && !leaveOpen)
             {
                 BaseStream.Dispose();
             }
