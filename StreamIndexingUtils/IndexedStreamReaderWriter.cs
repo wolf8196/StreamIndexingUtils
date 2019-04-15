@@ -62,12 +62,7 @@ Id: {id}");
             await BaseStream.CopyToAsync(destination, itemPointer.Length).ConfigureAwait(false);
         }
 
-        public Task WriteAsync(Stream source, string id)
-        {
-            return WriteAsync(source, id, 0);
-        }
-
-        public async Task WriteAsync(Stream source, string id, long offset)
+        public async Task WriteAsync(Stream source, string id)
         {
             source.ThrowIfNull(nameof(source));
             id.ThrowIfNull(nameof(id));
@@ -86,7 +81,8 @@ Id: {id}");
             var lastItemPointer = CurrentContentIndex.GetLastItemContentPointer();
 
             var sourceStartPos = lastItemPointer == null
-                ? offset : lastItemPointer.Start + lastItemPointer.Length;
+                ? CurrentContentIndex.Offset
+                : lastItemPointer.Start + lastItemPointer.Length;
 
             var sourceLength = source.Length - source.Position;
 
@@ -168,19 +164,14 @@ Id: {id}");
             return await new IndexSerializer().DeserializeAsync(BaseStream).ConfigureAwait(false);
         }
 
-        public Task SaveContentIndexAsync()
-        {
-            return SaveContentIndexAsync(0);
-        }
-
-        public async Task SaveContentIndexAsync(long offset)
+        public async Task SaveContentIndexAsync()
         {
             if (CurrentContentIndex == null)
             {
                 throw new ArgumentNullException(nameof(CurrentContentIndex), "The current content index is not set");
             }
 
-            await new IndexSerializer().SerializeAsync(CurrentContentIndex, BaseStream, offset).ConfigureAwait(false);
+            await new IndexSerializer().SerializeAsync(CurrentContentIndex, BaseStream).ConfigureAwait(false);
         }
     }
 }

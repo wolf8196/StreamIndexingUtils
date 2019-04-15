@@ -66,17 +66,7 @@ namespace StreamIndexingUtils
             }
         }
 
-        public Task SerializeAsync(ContentIndex index, Stream destination)
-        {
-            return SerializeAsync(index, destination, 0);
-        }
-
-        public Task SerializeAsync(ContentIndex index, Stream destination, Func<Stream, Stream, Task> transformation)
-        {
-            return SerializeAsync(index, destination, transformation, 0);
-        }
-
-        public async Task SerializeAsync(ContentIndex index, Stream destination, long offset)
+        public async Task SerializeAsync(ContentIndex index, Stream destination)
         {
             await SerializeAsync(
                 index,
@@ -84,16 +74,14 @@ namespace StreamIndexingUtils
                 async (source, dest) =>
                 {
                     await source.CopyToAsync(dest).ConfigureAwait(false);
-                },
-                offset)
+                })
                 .ConfigureAwait(false);
         }
 
         public async Task SerializeAsync(
             ContentIndex index,
             Stream destination,
-            Func<Stream, Stream, Task> transformation,
-            long offset)
+            Func<Stream, Stream, Task> transformation)
         {
             index.ThrowIfNull(nameof(index));
             destination.ThrowIfNull(nameof(destination));
@@ -110,7 +98,8 @@ namespace StreamIndexingUtils
                 var lastItemPointer = index.GetLastItemContentPointer();
 
                 var indexStartPos = lastItemPointer == null
-                    ? offset : lastItemPointer.Start + lastItemPointer.Length;
+                    ? index.Offset
+                    : lastItemPointer.Start + lastItemPointer.Length;
 
                 var positionPointerBytes = BitConverter.GetBytes(indexStartPos);
 

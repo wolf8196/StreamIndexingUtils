@@ -6,27 +6,14 @@ namespace StreamIndexingUtils
 {
     public class IndexedWriteStream : IndexedStream
     {
-        private long offset;
-
         public IndexedWriteStream(Stream stream, ContentIndex index, string id)
-            : this(stream, index, id, 0, false)
-        {
-        }
-
-        public IndexedWriteStream(Stream stream, ContentIndex index, string id, int offset)
             : this(stream, index, id, false)
         {
         }
 
         public IndexedWriteStream(Stream stream, ContentIndex index, string id, bool leaveOpen)
-            : this(stream, index, id, 0, leaveOpen)
-        {
-        }
-
-        public IndexedWriteStream(Stream stream, ContentIndex index, string id, int offset, bool leaveOpen)
             : base(stream, index, id, leaveOpen)
         {
-            this.offset = offset;
         }
 
         public override bool CanWrite => true;
@@ -47,7 +34,8 @@ Id: {id}");
             var lastItemPointer = index.GetLastItemContentPointer();
 
             var sourceStartPos = lastItemPointer == null
-                ? offset : lastItemPointer.Start + lastItemPointer.Length;
+                ? index.Offset
+                : lastItemPointer.Start + lastItemPointer.Length;
 
             ContentPointer = new ContentPointer(sourceStartPos, 0);
             Position = 0;

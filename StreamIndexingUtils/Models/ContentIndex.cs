@@ -1,18 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace StreamIndexingUtils.Models
 {
-    public class ContentIndex : Dictionary<string, ContentPointer>
+    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    public sealed class ContentIndex : IEnumerable<KeyValuePair<string, ContentPointer>>, IEnumerable
     {
+        [JsonProperty]
+        private readonly Dictionary<string, ContentPointer> index;
+
+        [JsonProperty]
+        private readonly long offset;
+
         public ContentIndex()
-            : base()
+            : this(0)
         {
         }
 
-        public ContentIndex(ContentIndex index)
-            : base(index)
+        public ContentIndex(long offset)
         {
+            this.offset = offset;
+            index = new Dictionary<string, ContentPointer>();
+        }
+
+        public int Count => index.Count;
+
+        public ICollection<string> Keys => index.Keys;
+
+        public ICollection<ContentPointer> Values { get => index.Values; }
+
+        public long Offset { get => offset; }
+
+        public ContentPointer this[string key]
+        {
+            get => index[key];
+            set => index[key] = value;
         }
 
         public void Add(string id, long start, long length)
@@ -41,9 +65,11 @@ namespace StreamIndexingUtils.Models
             }
         }
 
-        public string GetLastItemId()
+        public KeyValuePair<string, ContentPointer> GetLastItem()
         {
-            return GetLastItem().Key;
+            return index
+                 .Where(x => x.Value.Start == index.Max(y => y.Value.Start))
+                 .FirstOrDefault();
         }
 
         public ContentPointer GetLastItemContentPointer()
@@ -51,11 +77,39 @@ namespace StreamIndexingUtils.Models
             return GetLastItem().Value;
         }
 
-        public KeyValuePair<string, ContentPointer> GetLastItem()
+        public string GetLastItemId()
         {
-            return this
-                 .Where(x => x.Value.Start == this.Max(y => y.Value.Start))
-                 .FirstOrDefault();
+            return GetLastItem().Key;
+        }
+
+        public void Add(string key, ContentPointer value)
+        {
+            index.Add(key, value);
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return index.ContainsKey(key);
+        }
+
+        public bool Remove(string key)
+        {
+            return index.Remove(key);
+        }
+
+        public bool TryGetValue(string key, out ContentPointer value)
+        {
+            return index.TryGetValue(key, out value);
+        }
+
+        public IEnumerator<KeyValuePair<string, ContentPointer>> GetEnumerator()
+        {
+            return index.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
