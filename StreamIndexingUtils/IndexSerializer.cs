@@ -8,8 +8,10 @@ using StreamIndexingUtils.Utils;
 
 namespace StreamIndexingUtils
 {
-    public class IndexSerializer
+    public sealed class IndexSerializer
     {
+        private const string FormatExceptionMessage = "Source stream has incorrect format";
+
         public async Task<ContentIndex> DeserializeAsync(Stream source)
         {
             return await DeserializeAsync(
@@ -25,6 +27,10 @@ namespace StreamIndexingUtils
             Func<Stream, Stream, Task> transformation)
         {
             source.ThrowIfNull(nameof(source));
+            if (!source.CanSeek || !source.CanRead)
+            {
+                throw new ArgumentException(nameof(source), "Source stream must support Seek and Read");
+            }
 
             var sizeOfPositionPointer = sizeof(long);
             if (source.Length > sizeOfPositionPointer)
@@ -33,7 +39,7 @@ namespace StreamIndexingUtils
             }
             else
             {
-                throw new FormatException("The base stream is not in correct format");
+                throw new FormatException(FormatExceptionMessage);
             }
 
             var positionPointerBytes = new byte[sizeOfPositionPointer];
@@ -42,27 +48,30 @@ namespace StreamIndexingUtils
 
             source.Seek(position, SeekOrigin.Begin);
 
+            var transformationSource = new MemoryStream();
+
+            await source
+                .CopyToAsync(transformationSource, source.Length - position - sizeOfPositionPointer)
+                .ConfigureAwait(false);
+
+            transformationSource.Seek(0, SeekOrigin.Begin);
+            var transformationDestination = new MemoryStream();
+
+            await transformation(transformationSource, transformationDestination).ConfigureAwait(false);
+
+            transformationDestination.Seek(0, SeekOrigin.Begin);
+
             try
             {
-                var transformationSource = new MemoryStream();
-                await source
-                    .CopyToAsync(transformationSource, source.Length - position - sizeOfPositionPointer)
-                    .ConfigureAwait(false);
-                transformationSource.Seek(0, SeekOrigin.Begin);
-                var transformationDestination = new MemoryStream();
-
-                await transformation(transformationSource, transformationDestination).ConfigureAwait(false);
-
-                transformationDestination.Seek(0, SeekOrigin.Begin);
                 using (var streamReader = new StreamReader(transformationDestination))
                 {
                     var serializer = JsonSerializer.CreateDefault();
                     return (ContentIndex)serializer.Deserialize(streamReader, typeof(ContentIndex));
                 }
             }
-            catch (Exception ex)
+            catch (JsonException ex)
             {
-                throw new FormatException("The base stream is not in correct format", ex);
+                throw new FormatException(FormatExceptionMessage, ex);
             }
         }
 
@@ -86,6 +95,10 @@ namespace StreamIndexingUtils
             index.ThrowIfNull(nameof(index));
             destination.ThrowIfNull(nameof(destination));
             transformation.ThrowIfNull(nameof(transformation));
+            if (!destination.CanSeek || !destination.CanWrite)
+            {
+                throw new ArgumentException(nameof(destination), "Destination stream must support Seek and Write");
+            }
 
             using (var memoryStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memoryStream))

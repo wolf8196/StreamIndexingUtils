@@ -1,6 +1,6 @@
 ﻿namespace StreamIndexingUtils.Models
 {
-    public class ContentPointer
+    public sealed class ContentPointer
     {
         public ContentPointer(long start, long length)
         {

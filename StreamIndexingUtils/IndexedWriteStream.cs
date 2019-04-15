@@ -4,7 +4,7 @@ using StreamIndexingUtils.Models;
 
 namespace StreamIndexingUtils
 {
-    public class IndexedWriteStream : IndexedStream
+    public sealed class IndexedWriteStream : IndexedStream
     {
         public IndexedWriteStream(Stream stream, ContentIndex index, string id)
             : this(stream, index, id, false)

@@ -8,7 +8,7 @@ using StreamIndexingUtils.Utils;
 
 namespace StreamIndexingUtils
 {
-    public class IndexedStreamReaderWriter : IDisposable
+    public sealed class IndexedStreamReaderWriter : IDisposable
     {
         // Same value for buffer as Stream.CopyTo uses by default
         private const int DefaultCopyBufferSize = 81920;
@@ -20,7 +20,7 @@ namespace StreamIndexingUtils
 
         public IndexedStreamReaderWriter(Stream stream, ContentIndex index)
         {
-            BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
+            BaseStream = stream.ThrowIfNull(nameof(stream));
             CurrentContentIndex = index;
         }
 
@@ -86,16 +86,9 @@ Id: {id}");
 
             var sourceLength = source.Length - source.Position;
 
-            try
-            {
-                BaseStream.Seek(sourceStartPos, SeekOrigin.Begin);
+            BaseStream.Seek(sourceStartPos, SeekOrigin.Begin);
 
-                await source.CopyToAsync(BaseStream).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            await source.CopyToAsync(BaseStream).ConfigureAwait(false);
 
             CurrentContentIndex.AddOrUpdate(id, sourceStartPos, sourceLength);
         }
@@ -113,6 +106,12 @@ Id: {id}");
             if (CurrentContentIndex.GetLastItemId() == id)
             {
                 CurrentContentIndex.Remove(id);
+                var newLastItem = CurrentContentIndex.GetLastItemContentPointer();
+
+                BaseStream.SetLength(newLastItem == null
+                    ? CurrentContentIndex.Offset
+                    : newLastItem.Start + newLastItem.Length);
+
                 return;
             }
 

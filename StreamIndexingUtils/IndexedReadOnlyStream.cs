@@ -4,7 +4,7 @@ using StreamIndexingUtils.Models;
 
 namespace StreamIndexingUtils
 {
-    public class IndexedReadOnlyStream : IndexedStream
+    public sealed class IndexedReadOnlyStream : IndexedStream
     {
         public IndexedReadOnlyStream(Stream stream, ContentIndex index, string id, bool leaveOpen)
             : base(stream, index, id, leaveOpen)

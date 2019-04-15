@@ -7,7 +7,7 @@ namespace StreamIndexingUtils
 {
     public abstract class IndexedStream : Stream
     {
-        private bool leaveOpen;
+        private readonly bool leaveOpen;
 
         public IndexedStream(Stream stream, ContentIndex index, string id)
             : this(stream, index, id, false)
@@ -107,9 +107,9 @@ namespace StreamIndexingUtils
             throw new NotSupportedException("Stream does not support setting length");
         }
 
-        protected override void Dispose(bool disposing)
+        protected sealed override void Dispose(bool disposing)
         {
-            if (disposing && !leaveOpen)
+            if (BaseStream != null && disposing && !leaveOpen)
             {
                 BaseStream.Dispose();
             }

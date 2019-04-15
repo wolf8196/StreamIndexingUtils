@@ -2,9 +2,9 @@
 
 namespace StreamIndexingUtils.Utils
 {
-    public static class ObjectExtensions
+    internal static class ObjectExtensions
     {
-        public static T ThrowIfNull<T>(this T obj, string paramName)
+        internal static T ThrowIfNull<T>(this T obj, string paramName)
         {
             if (obj == null)
             {
