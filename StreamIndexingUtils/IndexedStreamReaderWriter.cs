@@ -5,23 +5,29 @@ using System.Threading.Tasks;
 using StreamIndexingUtils.Extensions;
 using StreamIndexingUtils.Models;
 using StreamIndexingUtils.Utils;
+using static StreamIndexingUtils.Extensions.StreamExtensions;
 
 namespace StreamIndexingUtils
 {
     public sealed class IndexedStreamReaderWriter : IDisposable
     {
-        // Same value for buffer as Stream.CopyTo uses by default
-        private const int DefaultCopyBufferSize = 81920;
+        private readonly bool leaveOpen;
 
         public IndexedStreamReaderWriter(Stream stream)
-            : this(stream, null)
+            : this(stream, null, false)
         {
         }
 
         public IndexedStreamReaderWriter(Stream stream, ContentIndex index)
+            : this(stream, null, false)
+        {
+        }
+
+        public IndexedStreamReaderWriter(Stream stream, ContentIndex index, bool leaveOpen)
         {
             BaseStream = stream.ThrowIfNull(nameof(stream));
             CurrentContentIndex = index;
+            this.leaveOpen = leaveOpen;
         }
 
         public Stream BaseStream { get; }
@@ -30,7 +36,7 @@ namespace StreamIndexingUtils
 
         public void Dispose()
         {
-            if (BaseStream != null)
+            if (BaseStream != null && !leaveOpen)
             {
                 BaseStream.Dispose();
             }
@@ -123,8 +129,8 @@ Id: {id}");
             var itemToRemove = orderedCopy[itemToRemoveIndex];
             var nextItem = orderedCopy[itemToRemoveIndex + 1];
 
-            byte[] buffer = new byte[DefaultCopyBufferSize];
             long bytes = BaseStream.Length - nextItem.Value.Start;
+            byte[] buffer = new byte[Math.Min(DefaultCopyBufferSize, bytes)];
             long sourcePosition = nextItem.Value.Start;
             long destinationPosition = itemToRemove.Value.Start;
             int read;
