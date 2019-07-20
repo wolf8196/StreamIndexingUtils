@@ -25,6 +25,16 @@ namespace StreamIndexingUtils.Models
             index = new Dictionary<string, ContentPointer>();
         }
 
+        public ContentIndex(ContentIndex contentIndex)
+        {
+            offset = contentIndex.offset;
+            index = new Dictionary<string, ContentPointer>();
+            foreach (var item in contentIndex.index)
+            {
+                index.Add(item.Key, new ContentPointer(item.Value));
+            }
+        }
+
         public int Count => index.Count;
 
         public ICollection<string> Keys => index.Keys;
