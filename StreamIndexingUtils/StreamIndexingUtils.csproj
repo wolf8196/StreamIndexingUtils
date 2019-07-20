@@ -3,11 +3,25 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.0;net45</TargetFrameworks>
     <LangVersion>latest</LangVersion>
+    <Authors>Roman Vovk</Authors>
+    <Description>Small and simple set of classes that allows storing multiple files in one</Description>
+    <Copyright>Copyright (c) 2019 Roman Vovk</Copyright>
+    <PackageProjectUrl>https://github.com/wolf8196/StreamIndexingUtils</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/wolf8196/StreamIndexingUtils</RepositoryUrl>
+    <PackageReleaseNotes />
+    <PackageTags>stream index</PackageTags>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>stream_indexing_utils_key.pfx</AssemblyOriginatorKeyFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Settings.StyleCop" />
     <None Remove="StyleCop.Cache" />
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
