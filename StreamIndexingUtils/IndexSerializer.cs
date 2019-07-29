@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StreamIndexingUtils.Extensions;
 using StreamIndexingUtils.Models;
-using StreamIndexingUtils.Utils;
+using StreamIndexingUtils.Extensions;
 
 namespace StreamIndexingUtils
 {

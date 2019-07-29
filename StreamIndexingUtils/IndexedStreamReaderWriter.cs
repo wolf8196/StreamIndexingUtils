@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using StreamIndexingUtils.Extensions;
 using StreamIndexingUtils.Models;
-using StreamIndexingUtils.Utils;
+using StreamIndexingUtils.Extensions;
 using static StreamIndexingUtils.Extensions.StreamExtensions;
 
 namespace StreamIndexingUtils

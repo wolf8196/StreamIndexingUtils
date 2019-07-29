@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using StreamIndexingUtils.Models;
-using StreamIndexingUtils.Utils;
+using StreamIndexingUtils.Extensions;
 
 namespace StreamIndexingUtils
 {
@@ -9,12 +9,12 @@ namespace StreamIndexingUtils
     {
         private readonly bool leaveOpen;
 
-        public IndexedStream(Stream stream, ContentIndex index, string id)
+        protected IndexedStream(Stream stream, ContentIndex index, string id)
             : this(stream, index, id, false)
         {
         }
 
-        public IndexedStream(Stream stream, ContentIndex index, string id, bool leaveOpen)
+        protected IndexedStream(Stream stream, ContentIndex index, string id, bool leaveOpen)
         {
             this.leaveOpen = leaveOpen;
             BaseStream = stream.ThrowIfNull(nameof(stream));
